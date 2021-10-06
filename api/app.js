@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var carrerasRouter = require('./routes/carreras');
 var materiaRouter = require('./routes/materia'); // ruta para especificar el metodo de materia
-
+var aulaRouter = require('./routes/aula'); // ruta para especificar el metodo de aula
 
 var app = express();
 
@@ -24,16 +24,13 @@ app.use('/car', carrerasRouter);
 
 app.use('/mat', materiaRouter); // especificamos el llamado a la ruta
 
+app.use('/aul', aulaRouter); // especificamos el llamado la ruta para la entidad Aula
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
-
-// catch 404 and forward to error handler
-//app.use(function(req, res, next) {
-//  next(createError(404));
-//});
 
 // error handler
 app.use(function(err, req, res, next) {

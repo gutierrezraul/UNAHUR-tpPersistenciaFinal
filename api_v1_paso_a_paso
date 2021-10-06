@@ -13,7 +13,14 @@
      DEBUG=api:* npm start
 
 
-
+     // generacion modelo carrera
      npx sequelize-cli model:generate --name carrera --attributes nombre:string
      npx sequelize db:migrate
 
+     // generacion modelo materia
+     sudo npx sequelize-cli model:generate --name materia --attributes nombre:string,id_carrera:integer
+     npx sequelize db:migrate
+
+     // generacion modelo aula
+     sudo npx sequelize-cli model:generate --name aula --attributes edificio:string,num_aula:integer,capacidad:integer,id_materia:integer
+     npx sequelize db:migrate     
