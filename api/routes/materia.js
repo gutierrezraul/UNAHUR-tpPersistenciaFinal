@@ -10,6 +10,19 @@ router.get("/", (req, res) => {
   .then(materia => res.send(materia)).catch(() => res.sendStatus(500));
 });
 
+router.get("/paginado/", (req, res) => {
+  console.log("Mensaje de control: GET");
+  const numeroDePagina = parseInt(req.query.numeroDePagina); 
+  const limiteDeObjetos = parseInt(req.query.limiteDeObjetos);
+
+  models.materia.findAll({attributes: ["id", "nombre","id_carrera"],  // se agrega el campo relacionado: id_carrera 
+    include:[{as:'Carrera-Relacionada', model:models.carrera, attributes: ["nombre"]}],   // se incluye la relacion con el modelo de carrera, sin el atributo "id"
+    offset: (numeroDePagina-1) * limiteDeObjetos, // Numero de pPagina * Objetos a mostrar
+    limit: limiteDeObjetos  // Cantidad de objetos a mostrar
+  })
+  .then(materia => res.send(materia)).catch(() => res.sendStatus(500));
+});
+
 router.post("/", (req, res) => {
   models.materia
     .create({ nombre: req.body.nombre, id_carrera: req.body.id_carrera })

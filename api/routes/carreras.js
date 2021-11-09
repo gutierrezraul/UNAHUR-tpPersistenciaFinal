@@ -12,6 +12,21 @@ router.get("/", (req, res) => {
     .catch(() => res.sendStatus(500));
 });
 
+router.get("/paginado/", (req, res) => {
+  console.log("Esto es un mensaje para ver en consola");
+  const numeroDePagina = parseInt(req.query.numeroDePagina); 
+  const limiteDeObjetos = parseInt(req.query.limiteDeObjetos);
+
+  models.carrera
+    .findAll({
+      attributes: ["id", "nombre"],
+      offset: (numeroDePagina-1) * limiteDeObjetos, // Numero de pPagina * Objetos a mostrar
+      limit: limiteDeObjetos  // Cantidad de objetos a mostrar
+    })
+    .then(carreras => res.send(carreras))
+    .catch(() => res.sendStatus(500));
+});
+
 router.post("/", (req, res) => {
   models.carrera
     .create({ nombre: req.body.nombre })
