@@ -4,8 +4,8 @@ var models = require("../models");
 
 router.get("/", (req, res) => {
   console.log("Mensaje de control: GET");
-  models.materia.findAll({attributes: ["id", "nombre","id_carrera"],  // se agrega el campo relacionado: id_carrera
-    include:[{as:'Carrera-Relacionada', model:models.carrera, attributes: ["id","nombre"]}]   // se incluye la relacion con el modelo de carrera
+  models.materia.findAll({attributes: ["id", "nombre","id_carrera"],  // se agrega el campo relacionado: id_carrera 
+    include:[{as:'Carrera-Relacionada', model:models.carrera, attributes: ["nombre"]}]   // se incluye la relacion con el modelo de carrera, sin el atributo "id"
   })
   .then(materia => res.send(materia)).catch(() => res.sendStatus(500));
 });
@@ -28,7 +28,8 @@ router.post("/", (req, res) => {
 const findMateria = (id, { onSuccess, onNotFound, onError }) => {
   models.materia
     .findOne({
-      attributes: ["id", "nombre","id_carrera"],
+      attributes: ["id", "nombre", "id_carrera"],  // se lista solo el id y nombre, id_carrera
+      include:[{as:'Carrera-Relacionada', model:models.carrera, attributes: ["nombre"]}], //se incluye la relacion con carrera para el GET sin "id"
       where: { id }
     })
     .then(materia => (materia ? onSuccess(materia) : onNotFound()))

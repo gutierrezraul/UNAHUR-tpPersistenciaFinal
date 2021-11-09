@@ -6,11 +6,29 @@ router.get("/", (req, res) => {
   console.log("Mensaje de control: GET");
   models.aula.findAll({attributes: ["id", "edificio","num_aula","capacidad","id_materia"],  // se agrega el campo relacionado: id_materia
     include:[{as:'Materia-EnCurso', 
-      model:models.materia, attributes: ["id","nombre","id_carrera"],
+      model:models.materia, attributes: ["nombre","id_carrera"], // Se omite "id" para no duplicar en pantalla
         include:[{as:'Carrera-Relacionada', 
-          model:models.carrera, attributes: ["id","nombre"]
+          model:models.carrera, attributes: ["nombre"]   // Se omite "id" para no duplicar en pantalla
         }] // se incluye la relacion con el modelo carrera
     }]   // se incluye la relacion con el modelo materia
+  })
+  .then(aula => res.send(aula)).catch(() => res.sendStatus(500));
+});
+
+router.get("/paginado/", (req, res) => {
+  console.log("Mensaje de control: GET");
+  const numeroDePagina = parseInt(req.query.numeroDePagina); 
+  const limiteDeObjetos = parseInt(req.query.limiteDeObjetos);
+
+  models.aula.findAll({attributes: ["id", "edificio","num_aula","capacidad","id_materia"],  // se agrega el campo relacionado: id_materia
+    include:[{as:'Materia-EnCurso', 
+      model:models.materia, attributes: ["nombre","id_carrera"], // Se omite "id" para no duplicar en pantalla
+        include:[{as:'Carrera-Relacionada', 
+          model:models.carrera, attributes: ["nombre"]   // Se omite "id" para no duplicar en pantalla
+        }] // se incluye la relacion con el modelo carrera
+    }],   // se incluye la relacion con el modelo materia
+    offset: (numeroDePagina-1) * limiteDeObjetos, // Numero de pPagina * Objetos a mostrar
+    limit: limiteDeObjetos  // Cantidad de objetos a mostrar
   })
   .then(aula => res.send(aula)).catch(() => res.sendStatus(500));
 });
@@ -33,7 +51,13 @@ router.post("/", (req, res) => {
 const findAula = (num_aula, { onSuccess, onNotFound, onError }) => {
   models.aula
     .findOne({
-      attributes: ["id", "num_aula" , "edificio"],
+      attributes: ["id", "edificio" , "num_aula" , "id_materia"],
+      include:[{as:'Materia-EnCurso', 
+        model:models.materia, attributes: ["nombre","id_carrera"], // Se omite "id" para no duplicar en pantalla
+          include:[{as:'Carrera-Relacionada', 
+            model:models.carrera, attributes: ["nombre"]   // Se omite "id" para no duplicar en pantalla
+          }] // se incluye la relacion con el modelo carrera
+      }],
       where: { num_aula }  // se hace la busqueda por el numero de aula
     })
     .then(aula => (aula ? onSuccess(aula) : onNotFound()))
@@ -43,7 +67,13 @@ const findAula = (num_aula, { onSuccess, onNotFound, onError }) => {
 const findIdAula = (id, { onSuccess, onNotFound, onError }) => {
   models.aula
     .findOne({
-      attributes: ["id", "edificio" , "num_aula"],
+      attributes: ["id", "edificio" , "num_aula" , "id_materia"],
+      include:[{as:'Materia-EnCurso', 
+        model:models.materia, attributes: ["nombre","id_carrera"], // Se omite "id" para no duplicar en pantalla
+          include:[{as:'Carrera-Relacionada', 
+            model:models.carrera, attributes: ["nombre"]   // Se omite "id" para no duplicar en pantalla
+          }] // se incluye la relacion con el modelo carrera
+      }],
       where: { id }  // se hace la busqueda por el id del aula
     })
     .then(aula => (aula ? onSuccess(aula) : onNotFound()))
@@ -58,10 +88,18 @@ router.get("/:num_aula", (req, res) => {    //el get se realiza en esta metodo s
   });
 });
 
+router.get("/xid/:id", (req, res) => {    //el get se realiza en esta metodo sobre el id del Aula
+  findIdAula(req.params.id, {
+    onSuccess: aula => res.send(aula),
+    onNotFound: () => res.sendStatus(404),
+    onError: () => res.sendStatus(500)
+  });
+});
+
 router.put("/:id", (req, res) => {
   const onSuccess = aula =>
-    aula.update({ edificio: req.body.edificio,num_aula: req.body.num_aula,capacidad: req.body.capacidad }, 
-      { fields: ["edificio","num_aula","capacidad"] })
+    aula.update({ edificio: req.body.edificio, num_aula: req.body.num_aula, capacidad: req.body.capacidad, id_materia: req.body.id_materia}, 
+      { fields: ["edificio","num_aula","capacidad","id_materia"] })
       .then(() => res.sendStatus(200))
       .catch(error => {
         if (error == "SequelizeUniqueConstraintError: Validation error") {
