@@ -1,4 +1,5 @@
 var express = require("express");
+const { sequelize } = require("../models");
 var router = express.Router();
 var models = require("../models");
 
@@ -15,8 +16,16 @@ router.get("/", (req, res) => {
   .then(aula => res.send(aula)).catch(() => res.sendStatus(500));
 });
 
+router.get("/cantidadAlumnos/", (req, res) => {
+  console.log("Mensaje de control: GET sumando alumnos");
+  models.aula.findAll({attributes: [[sequelize.fn('sum',sequelize.col('capacidad')),'Capacidad de alumnos']]  
+  // se suma el campo capacidad de todos los registros
+  })
+  .then(aula => res.send(aula)).catch(() => res.sendStatus(500));
+});
+
 router.get("/paginado/", (req, res) => {
-  console.log("Mensaje de control: GET");
+  console.log("Mensaje de control: GET con pagina");
   const numeroDePagina = parseInt(req.query.numeroDePagina); 
   const limiteDeObjetos = parseInt(req.query.limiteDeObjetos);
 
@@ -27,7 +36,7 @@ router.get("/paginado/", (req, res) => {
           model:models.carrera, attributes: ["nombre"]   // Se omite "id" para no duplicar en pantalla
         }] // se incluye la relacion con el modelo carrera
     }],   // se incluye la relacion con el modelo materia
-    offset: (numeroDePagina-1) * limiteDeObjetos, // Numero de pPagina * Objetos a mostrar
+    offset: (numeroDePagina-1) * limiteDeObjetos, // Numero de Pagina * Objetos a mostrar
     limit: limiteDeObjetos  // Cantidad de objetos a mostrar
   })
   .then(aula => res.send(aula)).catch(() => res.sendStatus(500));
@@ -80,7 +89,7 @@ const findIdAula = (id, { onSuccess, onNotFound, onError }) => {
     .catch(() => onError());
 };
 
-router.get("/:num_aula", (req, res) => {    //el get se realiza en esta metodo sobre el numero de Aula
+router.get("/buscarPorNumAula/:num_aula", (req, res) => {    //el get se realiza por el numero de Aula
   findAula(req.params.num_aula, {
     onSuccess: aula => res.send(aula),
     onNotFound: () => res.sendStatus(404),
@@ -88,7 +97,7 @@ router.get("/:num_aula", (req, res) => {    //el get se realiza en esta metodo s
   });
 });
 
-router.get("/xid/:id", (req, res) => {    //el get se realiza en esta metodo sobre el id del Aula
+router.get("/buscarPorId/:id", (req, res) => {    //el get se realiza por el id del Aula
   findIdAula(req.params.id, {
     onSuccess: aula => res.send(aula),
     onNotFound: () => res.sendStatus(404),
@@ -111,7 +120,7 @@ router.put("/:id", (req, res) => {
         }
       });
     findIdAula(req.params.id, {   // se utiliza la constante findIdAula
-    onSuccess,  //constante con la actualizacion del ID encontrado
+    onSuccess,  // ID encontrado
     onNotFound: () => res.sendStatus(404),
     onError: () => res.sendStatus(500)
   });
